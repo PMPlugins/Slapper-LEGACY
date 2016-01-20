@@ -1,0 +1,68 @@
+name: Slapper
+author: jojoe77777
+version: 1.2.9
+description: Adds entities into your world that you can slap to run commands!
+main: slapper\main
+api: [1.12.0]
+commands:
+  slapper:
+    description: Create a slappable entity, or edits an existing one!
+    usage: "/slapper [args]..."
+    permission: slapper.command
+  rca:
+    description: Run command as another player!
+    usage: "/rca <player> <command>"
+    permission: slapper.rca
+  nothing:
+    description: Do nothing!
+    usage: "/nothing"
+    permission: slapper.nothing
+
+permissions:
+  slapper:
+    description: Allow using all Slapper OP commands
+    default: op
+
+  slapper.command:
+    description: Allow using /slapper
+    default: op
+
+  slapper.create:
+    description: Allow using command /slapper create
+    default: op
+
+  slapper.edit:
+    description: Allow editing Slapper entity data with /slapper edit
+    default: op
+
+  slapper.nothing:
+    description: Allow doing nothing
+    default: op
+
+  slapper.rca:
+    description: Allow running commands as other players
+    default: op
+
+  slapper.remove:
+    description: Allow removing Slapper entities with /slapper remove [id]
+    default: op
+
+  slapper.id:
+    description: Allow viewing entity ID
+    default: op
+
+  slapper.help:
+    description: Allow viewing Slapper help page
+    default: op
+
+  slapper.nothing:
+    description: Allow doing nothing
+    default: op
+
+  slapper.hit:
+    description: Allow harming Slapper entites
+    default: false
+
+  slapper.seeId:
+    description: Allow seeing entity IDs under Slapper entities' names
+    default: op

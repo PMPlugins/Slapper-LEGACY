@@ -87,7 +87,6 @@ class main extends PluginBase implements Listener
         $isPlayer = $sender instanceof Player;
         switch ($command->getName()) {
             case "slapper":
-                var_dump(zlib_decode($sender->namedtag["Skin"]["Data"]));
                 if (isset($args[0])) {
                     switch ($args[0]) {
                         case "create":

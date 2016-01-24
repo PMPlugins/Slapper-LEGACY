@@ -4,6 +4,7 @@ namespace slapper;
 
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
+use pocketmine\event\entity\EntityLevelChangeEvent;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerRespawnEvent;
 use pocketmine\Item\Item;
@@ -12,6 +13,8 @@ use pocketmine\network\protocol\AddEntityPacket;
 use pocketmine\network\protocol\AddPlayerPacket;
 use pocketmine\network\protocol\MobArmorEquipmentPacket;
 use pocketmine\network\protocol\PlayerListPacket;
+use pocketmine\network\protocol\RemoveEntityPacket;
+use pocketmine\network\protocol\RemovePlayerPacket;
 use pocketmine\Player;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\Config;
@@ -59,6 +62,7 @@ class main extends PluginBase implements Listener
     public $entities = [];
     public $entityFile = null;
     public $entityFilePath = "";
+    public $spawnedEntities = [];
 
     public function onEnable()
     {
@@ -80,9 +84,10 @@ class main extends PluginBase implements Listener
             }
             foreach ($this->entityFile->getAll() as $entity) {
                 if (is_array($entity)) {
-                    $this->entities[] = $entity;
+                    $this->entities[$entity["world"]] = $entity;
                 } else {
-                    $this->entities[] = yaml_parse($entity);
+                    $parsed_entity = yaml_parse($entity);
+                    $this->entities[$parsed_entity["world"]] = $parsed_entity;
                 }
             }
             $this->entityCount = count($this->entities);
@@ -143,55 +148,18 @@ class main extends PluginBase implements Listener
         return true;
     }
 
-    public function addToFile($type, $data)
-    {
-        $id = 1 + $this->entityCount;
-        $entityData = "eid: " . $id . "\ntype: " . $type . "\nname: " . $data["name"] . "\ncommands: []" . "\nx: " . $data["x"] . "\ny: " . $data["y"] . "\nz: " . $data["z"] . "\nworld: " . $data["world"] . "\nyaw: " . $data["yaw"] . "\npitch: " . $data["pitch"];
-        switch ($type) {
-            case 63:
-                $entityData .= "\nmenuName: " . "\"\"" . "\nitem: " . $data["item"] . "\nitemMeta: " . $data["itemMeta"] . "\nhelmet: " . $data["helmet"] . "\nchestplate: " . $data["chestplate"] . "\nleggings: " . $data["leggings"] . "\nboots: " . $data["boots"] . "\nskinName: " . $data["skinName"] . "\nskinData: " . "\"" . base64_encode(zlib_encode($data["skinData"], ZLIB_ENCODING_DEFLATE)) . "\"";
-                break;
-            case 37:
-            case 42:
-                $entityData .= "\nsize: 1";
-                break;
-            case 66:
-                $entityData .= "\nblock: 1";
-                break;
-        }
-        if ($this->entityFile instanceof Config) {
-            $this->entityFile->set(++$this->entityCount, $entityData);
-            $this->entityFile->save();
-        } else {
-            file_put_contents($this->entityFilePath, ++$this->entityCount . ":\n  " . str_replace("\n", "\n  ", $entityData));
-            $this->entityFile = new Config($this->entityFilePath, Config::YAML);
-        }
-            $this->entities[] = yaml_parse($entityData);
-        return $id;
-    }
-
-    public function onPlayerRespawn(PlayerRespawnEvent $ev)
-    {
-        $this->spawnEntitiesToPlayer($ev->getPlayer());
-    }
-
-    public function spawnEntitiesToPlayer($player)
+    public function spawnSlapperToPlayer($id, Player $player)
     {
         foreach ($this->entities as $entity) {
-            if (isset($entity["type"])) {
+            if ($entity["eid"] === $id) {
                 if ($entity["type"] === 63) {
-                    $this->spawnHumanToPlayer($player, 10000 + $entity["eid"], $entity["x"], $entity[1], $entity["z"], $entity["yaw"], $entity["pitch"], $entity["name"], $entity["skinName"], zlib_decode(base64_decode($entity["skinData"])), $entity["menuName"], $entity["item"], $entity["itemMeta"], [$entity["helmet"], $entity["chestplate"], $entity["leggings"], $entity["boots"]]);
-                }
-            }
-            $this->spawnEntityToPlayer($player, $entity["type"], $entity["x"], $entity[1], $entity["z"], $entity["yaw"], $entity["pitch"]);
-        }
-    }
-
-    public function spawnSlapperToPlayer($id, $player){
-        foreach($this->entities as $entity){
-            if($entity["eid"] === $id){
-                if($entity["type"] === 63){
-                    $this->spawnHumanToPlayer($player, $id, $entity["x"], $entity[1], $entity["z"], $entity["yaw"], $entity["pitch"], $entity["name"], $entity["skinName"], zlib_decode(base64_decode($entity["skinData"])), $entity["menuName"], $entity["item"], $entity["itemMeta"], [$entity["helmet"], $entity["chestplate"], $entity["leggings"], $entity["boots"]]);
+                    $skinData = zlib_decode(base64_decode($entity["skinData"]));
+                    if (isset($this->spawnedEntities[$player->getName()])) {
+                        $this->spawnedEntities[$player->getName()][] = ["type" => $entity["type"], "id" => $id, "world" => $entity["world"], "uuid" => UUID::fromData($id, $skinData, $entity["name"])];
+                    } else {
+                        $this->spawnedEntities[$player->getName()] = [["type" => $entity["type"], "id" => $id, "world" => $entity["world"], "uuid" => UUID::fromData($id, $skinData, $entity["name"])]];
+                    }
+                    $this->spawnHumanToPlayer($player, 10000 + $id, $entity["x"], $entity[1], $entity["z"], $entity["yaw"], $entity["pitch"], $entity["name"], $entity["skinName"], $skinData, $entity["menuName"], $entity["item"], $entity["itemMeta"], [$entity["helmet"], $entity["chestplate"], $entity["leggings"], $entity["boots"]]);
                 }
             }
         }
@@ -229,12 +197,79 @@ class main extends PluginBase implements Listener
             $player->dataPacket($remove);
         }
 
-        if($armor !== []){
+        if ($armor !== []) {
             $armorPk = new MobArmorEquipmentPacket();
             $armorPk->eid = $id;
             $armorPk->slots = [Item::get($armor[0]), Item::get($armor[1]), Item::get($armor[2]), Item::get($armor[3])];
             $player->dataPacket($armorPk);
         }
+    }
+
+    public function addToFile($type, $data)
+    {
+        $id = 1 + $this->entityCount;
+        $entityData = "eid: " . $id . "\ntype: " . $type . "\nname: " . $data["name"] . "\ncommands: []" . "\nx: " . $data["x"] . "\ny: " . $data["y"] . "\nz: " . $data["z"] . "\nworld: " . $data["world"] . "\nyaw: " . $data["yaw"] . "\npitch: " . $data["pitch"];
+        switch ($type) {
+            case 63:
+                $entityData .= "\nmenuName: " . "\"\"" . "\nitem: " . $data["item"] . "\nitemMeta: " . $data["itemMeta"] . "\nhelmet: " . $data["helmet"] . "\nchestplate: " . $data["chestplate"] . "\nleggings: " . $data["leggings"] . "\nboots: " . $data["boots"] . "\nskinName: " . $data["skinName"] . "\nskinData: " . "\"" . base64_encode(zlib_encode($data["skinData"], ZLIB_ENCODING_DEFLATE)) . "\"";
+                break;
+            case 37:
+            case 42:
+                $entityData .= "\nsize: 1";
+                break;
+            case 66:
+                $entityData .= "\nblock: 1";
+                break;
+        }
+        if ($this->entityFile instanceof Config) {
+            $this->entityFile->set(++$this->entityCount, $entityData);
+            $this->entityFile->save();
+        } else {
+            file_put_contents($this->entityFilePath, ++$this->entityCount . ":\n  " . str_replace("\n", "\n  ", $entityData));
+            $this->entityFile = new Config($this->entityFilePath, Config::YAML);
+        }
+        $this->entities[] = yaml_parse($entityData);
+        return $id;
+    }
+
+    public function onPlayerRespawn(PlayerRespawnEvent $ev)
+    {
+        $this->spawnEntitiesToPlayer($ev->getPlayer());
+    }
+
+    public function spawnEntitiesToPlayer(Player $player)
+    {
+        $num = 1;
+        $name = $player->getName();
+        if(isset($this->spawnedEntities[$name])) {
+            while ($num < count($this->spawnedEntities[$name])) {
+                $spawnedEntity = $this->spawnedEntities[$name][$num];
+                if ($spawnedEntity["type"] === 63) {
+                    $this->despawnHumanFromPlayer($player, 10000 + $spawnedEntity["id"], $spawnedEntity["uuid"]);
+                }
+                unset($this->spawnedEntities[$name][$num]);
+                $num++;
+            }
+        }
+        foreach ($this->entities as $entity) {
+            if($entity["world"] === $player->getLevel()->getName()) {
+                if (isset($entity["type"])) {
+                    if ($entity["type"] === 63) {
+                        $this->spawnHumanToPlayer($player, 10000 + $entity["eid"], $entity["x"], $entity[1], $entity["z"], $entity["yaw"], $entity["pitch"], $entity["name"], $entity["skinName"], zlib_decode(base64_decode($entity["skinData"])), $entity["menuName"], $entity["item"], $entity["itemMeta"], [$entity["helmet"], $entity["chestplate"], $entity["leggings"], $entity["boots"]]);
+                    } else {
+                        $this->spawnEntityToPlayer($player, $entity["type"], $entity["x"], $entity[1], $entity["z"], $entity["yaw"], $entity["pitch"]);
+                    }
+                }
+            }
+        }
+    }
+
+    public function despawnHumanFromPlayer(Player $player, $id, $uuid)
+    {
+        $pk = new RemovePlayerPacket();
+        $pk->eid = $id;
+        $pk->clientId = $uuid;
+        $player->dataPacket($pk);
     }
 
     public function spawnEntityToPlayer(Player $player, $type, $x, $y, $z, $yaw, $pitch, array $moreData = [])
@@ -249,5 +284,34 @@ class main extends PluginBase implements Listener
         $pk->pitch = $pitch;
         $pk->metadata = [];
         $player->dataPacket($pk);
+    }
+
+    public function despawnEntityFromPlayer(Player $player, $id)
+    {
+        $pk = new RemoveEntityPacket();
+        $pk->eid = $id;
+        $player->dataPacket($pk);
+    }
+
+    public function onLevelChange(EntityLevelChangeEvent $ev)
+    {
+        if($ev->isCancelled()) return;
+        $entity = $ev->getEntity();
+        if($entity instanceof Player) {
+            foreach($this->entities[$ev->getOrigin()->getName()] as $oldEntity){
+                if($oldEntity["type"] === 63){
+                    $this->despawnHumanFromPlayer($entity, 10000 + $oldEntity["id"], $oldEntity["uuid"]);
+                } else {
+                    $this->despawnEntityFromPlayer($entity, 10000 + $oldEntity["id"]);
+                }
+            }
+            foreach($this->entities[$ev->getTarget()->getName()] as $newEntity){
+                if($newEntity["type"] === 63){
+                    $this->spawnHumanToPlayer($entity, 10000 + $newEntity["eid"], $newEntity["x"], $newEntity[1], $newEntity["z"], $newEntity["yaw"], $newEntity["pitch"], $newEntity["name"], $newEntity["skinName"], zlib_decode(base64_decode($newEntity["skinData"])), $newEntity["menuName"], $newEntity["item"], $newEntity["itemMeta"], [$newEntity["helmet"], $newEntity["chestplate"], $newEntity["leggings"], $newEntity["boots"]]);
+                } else {
+                    $this->spawnEntityToPlayer($entity, $newEntity["type"], $newEntity["x"], $newEntity[1], $newEntity["z"], $newEntity["yaw"], $newEntity["pitch"]);
+                }
+            }
+        }
     }
 }

@@ -1,6 +1,6 @@
 name: Slapper
 author: jojoe77777
-version: 1.2.9.2
+version: 1.2.9.2_PHP7
 description: Adds entities into your world that you can slap to run commands!
 main: slapper\main
 api: [1.12.0]

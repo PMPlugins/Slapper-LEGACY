@@ -10,14 +10,14 @@ use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\Listener;
 use pocketmine\Item\Item;
-use pocketmine\nbt\tag\Byte;
-use pocketmine\nbt\tag\Compound;
-use pocketmine\nbt\tag\Double;
-use pocketmine\nbt\tag\Enum;
-use pocketmine\nbt\tag\Float;
-use pocketmine\nbt\tag\Int;
-use pocketmine\nbt\tag\Short;
-use pocketmine\nbt\tag\String;
+use pocketmine\nbt\tag\ByteTag;
+use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\nbt\tag\DoubleTag;
+use pocketmine\nbt\tag\EnumTag;
+use pocketmine\nbt\tag\FloatTag;
+use pocketmine\nbt\tag\IntTag;
+use pocketmine\nbt\tag\ShortTag;
+use pocketmine\nbt\tag\StringTag;
 use pocketmine\Player;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\TextFormat;
@@ -476,9 +476,9 @@ class main extends PluginBase implements Listener
                                                                         $type = 1;
                                                                 }
                                                                 if ($type === 0) {
-                                                                    $entity->namedtag->MenuName = new String("MenuName", $input);
+                                                                    $entity->namedtag->MenuName = new StringTag("MenuName", $input);
                                                                 } else {
-                                                                    $entity->namedtag->MenuName = new String("MenuName", "");
+                                                                    $entity->namedtag->MenuName = new StringTag("MenuName", "");
                                                                 }
                                                                 $entity->respawnToAll();
                                                                 $sender->sendMessage($this->prefix . "Menu name updated.");
@@ -516,7 +516,7 @@ class main extends PluginBase implements Listener
                                                                 $sender->sendMessage($this->prefix . "That command has already been added.");
                                                                 return true;
                                                             }
-                                                            $entity->namedtag->Commands[$input] = new String($input, $input);
+                                                            $entity->namedtag->Commands[$input] = new StringTag($input, $input);
                                                             $sender->sendMessage($this->prefix . "Command added.");
                                                         } else {
                                                             $sender->sendMessage($this->prefix . "Please enter a command.");
@@ -554,7 +554,7 @@ class main extends PluginBase implements Listener
                                                     case "migrate":
                                                         if ($this->getConfig()->get($entity->getName()) !== false) {
                                                             foreach ($this->getConfig()->get($entity->getName()) as $cmd) {
-                                                                $entity->namedtag->Commands[$cmd] = new String($cmd, $cmd);
+                                                                $entity->namedtag->Commands[$cmd] = new StringTag($cmd, $cmd);
                                                             }
                                                             $sender->sendMessage($this->prefix . "Commands migrated.");
                                                         } else {
@@ -566,7 +566,7 @@ class main extends PluginBase implements Listener
                                                     case "blockid":
                                                     case "tileid":
                                                         if ($entity instanceof SlapperFallingSand) {
-                                                            $entity->namedtag->BlockID = new Int("BlockID", intval($args[2]));
+                                                            $entity->namedtag->BlockID = new IntTag("BlockID", intval($args[2]));
                                                             $entity->respawnToAll();
                                                             $sender->sendMessage($this->prefix . "Block updated.");
                                                         } else {
@@ -847,33 +847,33 @@ class main extends PluginBase implements Listener
 
     private function makeNBT($skin, $skinName, $name, $inv, $yaw, $pitch, $x, $y, $z)
     {
-        $nbt = new Compound;
-        $nbt->Pos = new Enum("Pos", [
-            new Double("", $x),
-            new Double("", $y),
-            new Double("", $z)
+        $nbt = new CompoundTag;
+        $nbt->Pos = new EnumTag("Pos", [
+            new DoubleTag("", $x),
+            new DoubleTag("", $y),
+            new DoubleTag("", $z)
         ]);
-        $nbt->Rotation = new Enum("Rotation", [
-            new Float("", $yaw),
-            new Float("", $pitch)
+        $nbt->Rotation = new EnumTag("Rotation", [
+            new FloatTag("", $yaw),
+            new FloatTag("", $pitch)
         ]);
-        $nbt->Health = new Short("Health", 1);
-        $nbt->Inventory = new Enum("Inventory", $inv);
-        $nbt->CustomName = new String("CustomName", $name);
-        $nbt->CustomNameVisible = new Byte("CustomNameVisible", 1);
-        $nbt->Invulnerable = new Byte("Invulnerable", 1);
-        $nbt->Skin = new Compound("Skin", [
-            "Data" => new String("Data", $skin),
-            "Name" => new String("Name", $skinName)
+        $nbt->Health = new ShortTag("Health", 1);
+        $nbt->Inventory = new EnumTag("Inventory", $inv);
+        $nbt->CustomName = new StringTag("CustomName", $name);
+        $nbt->CustomNameVisible = new ByteTag("CustomNameVisible", 1);
+        $nbt->Invulnerable = new ByteTag("Invulnerable", 1);
+        $nbt->Skin = new CompoundTag("Skin", [
+            "Data" => new StringTag("Data", $skin),
+            "Name" => new StringTag("Name", $skinName)
         ]);
         /* Slapper NBT info */
-        $nbt->Commands = new Compound("Commands", []);
-        $nbt->MenuName = new String("MenuName", "");
-        $nbt->SlapperVersion = new String("SlapperVersion", "1.2.9.2");
+        $nbt->Commands = new CompoundTag("Commands", []);
+        $nbt->MenuName = new StringTag("MenuName", "");
+        $nbt->SlapperVersion = new StringTag("SlapperVersion", "1.2.9.2");
         /* FallingSand Block ID */
-        $nbt->BlockID = new Int("BlockID", 1);
+        $nbt->BlockID = new IntTag("BlockID", 1);
         /* Name visible */
-        $nbt->CustomNameVisible = new Byte("CustomNameVisible", 1);
+        $nbt->CustomNameVisible = new ByteTag("CustomNameVisible", 1);
         return $nbt;
     }
 
@@ -944,7 +944,7 @@ class main extends PluginBase implements Listener
                             }
                         } else {
                             $this->getLogger()->debug("Outdated entity; adding blank commands compound. Please restore commands manually with '/slapper edit " . $taker->getId() . " fix'");
-                            $taker->namedtag->Commands = new Compound("Commands", []);
+                            $taker->namedtag->Commands = new CompoundTag("Commands", []);
                         }
                     }
 

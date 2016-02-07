@@ -323,7 +323,8 @@ class main extends PluginBase implements Listener
                         case "edit":
                             if ($sender->hasPermission("slapper.edit") || $sender->hasPermission("slapper")) {
                                 if (isset($args[0])) {
-                                    $entity = $sender->getLevel()->getEntity($args[0]);
+                                    $level = $sender->getLevel();
+                                    $entity = $level->getEntity($args[0]);
                                     if (!($entity == null)) {
                                         if (
                                             $entity instanceof SlapperHuman ||
@@ -439,8 +440,7 @@ class main extends PluginBase implements Listener
                                                     case "skin":
                                                         if ($entity instanceof SlapperHuman) {
                                                             $entity->setSkin($sender->getSkinData(), $sender->getSkinName());
-                                                            $entity->despawnFromAll();
-                                                            $entity->spawnToAll();
+                                                            $entity->respawnToAll();
                                                             $sender->sendMessage($this->prefix . "Skin updated.");
                                                         } else {
                                                             $sender->sendMessage($this->prefix . "That entity can't have a skin.");
@@ -452,8 +452,7 @@ class main extends PluginBase implements Listener
                                                             array_shift($args);
                                                             array_shift($args);
                                                             $entity->setDataProperty(2, Entity::DATA_TYPE_STRING, trim(implode(" ", $args)));
-                                                            $entity->despawnFromAll();
-                                                            $entity->spawnToAll();
+                                                            $entity->respawnToAll();
                                                             $sender->sendMessage($this->prefix . "Name updated.");
                                                         } else {
                                                             $sender->sendMessage($this->prefix . "Please enter a name.");
@@ -481,8 +480,7 @@ class main extends PluginBase implements Listener
                                                                 } else {
                                                                     $entity->namedtag->MenuName = new String("MenuName", "");
                                                                 }
-                                                                $entity->despawnFromAll();
-                                                                $entity->spawnToAll();
+                                                                $entity->respawnToAll();
                                                                 $sender->sendMessage($this->prefix . "Menu name updated.");
                                                             } else {
                                                                 $sender->sendMessage($this->prefix . "Please enter a menu name.");
@@ -501,8 +499,7 @@ class main extends PluginBase implements Listener
                                                     case "tag_visible":
                                                         if (isset($args[2])) {
                                                             $entity->setDataProperty(3, 0, intval($args[2]));
-                                                            $entity->despawnFromAll();
-                                                            $entity->spawnToAll();
+                                                            $entity->respawnToAll();
                                                             $sender->sendMessage($this->prefix . "Name visibility updated.");
                                                         } else {
                                                             $sender->sendMessage($this->prefix . "Please enter a value, 1 or 0.");
@@ -527,6 +524,7 @@ class main extends PluginBase implements Listener
                                                         return true;
                                                     case "delc":
                                                     case "delcmd":
+                                                    case "delcommand":
                                                     case "removecommand":
                                                         if (isset($args[2])) {
                                                             array_shift($args);
@@ -569,7 +567,7 @@ class main extends PluginBase implements Listener
                                                     case "tileid":
                                                         if ($entity instanceof SlapperFallingSand) {
                                                             $entity->namedtag->BlockID = new Int("BlockID", intval($args[2]));
-                                                            $entity->spawnToAll();
+                                                            $entity->respawnToAll();
                                                             $sender->sendMessage($this->prefix . "Block updated.");
                                                         } else {
                                                             $sender->sendMessage($this->prefix . "That entity is not a block.");
@@ -582,8 +580,7 @@ class main extends PluginBase implements Listener
                                                     case "bringhere":
                                                         $entity->teleport($sender);
                                                         $sender->sendMessage($this->prefix . "Teleported entity to you.");
-                                                        $entity->despawnFromAll();
-                                                        $entity->spawnToAll();
+                                                        $entity->respawnToAll();
                                                         return true;
                                                         break;
                                                     case "teleportto":
@@ -620,8 +617,6 @@ class main extends PluginBase implements Listener
                                     }
                                     return true;
                                 }
-                                $this->hitSessions[$sender->getName()] = true;
-                                $sender->sendMessage($this->prefix . "Hit an entity to remove it.");
                             } else {
                                 $sender->sendMessage($this->prefix . "You don't have permission.");
                             }
@@ -647,7 +642,7 @@ class main extends PluginBase implements Listener
                                 return true;
                             }
                             $defaultName = $sender->getDisplayName();
-                            if ($name == null) $name = $defaultName;
+                            if (empty($name)) $name = $defaultName;
                             $playerX = $sender->getX();
                             $playerY = $sender->getY();
                             $playerZ = $sender->getZ();
@@ -842,7 +837,6 @@ class main extends PluginBase implements Listener
                             $sender->sendMessage($this->prefix . "Unknown command. Type '/slapper help' for help.");
                             return true;
                     }
-                    return true;
                 } else {
                     $sender->sendMessage($this->prefix . "This command only works in game.");
                     return true;
@@ -875,12 +869,11 @@ class main extends PluginBase implements Listener
         /* Slapper NBT info */
         $nbt->Commands = new Compound("Commands", []);
         $nbt->MenuName = new String("MenuName", "");
-        $nbt->SlapperVersion = new String("SlapperVersion", "1.2.9");
+        $nbt->SlapperVersion = new String("SlapperVersion", "1.2.9.2");
         /* FallingSand Block ID */
         $nbt->BlockID = new Int("BlockID", 1);
         /* Name visible */
         $nbt->CustomNameVisible = new Byte("CustomNameVisible", 1);
-
         return $nbt;
     }
 
@@ -889,7 +882,6 @@ class main extends PluginBase implements Listener
      */
     public function onEntityDamage(EntityDamageEvent $event)
     {
-        $perm = true;
         $taker = $event->getEntity();
         if (
             $taker instanceof SlapperHuman ||
@@ -945,19 +937,14 @@ class main extends PluginBase implements Listener
                             $event->setCancelled();
                             return;
                         }
-                        if (!($hitter->hasPermission("slapper.hit"))) {
-                            $event->setCancelled(true);
-                            $perm = false;
-                        }
-                        if ($perm == false) {
-                            if (isset($taker->namedtag->Commands)) {
-                                foreach ($taker->namedtag->Commands as $cmd) {
-                                    $this->getServer()->dispatchCommand(new ConsoleCommandSender(), str_ireplace("{player}", $giverName, $cmd));
-                                }
-                            } else {
-                                $this->getLogger()->debug("Outdated entity; adding blank commands compound. Please restore commands manually with '/slapper edit " . $taker->getId() . " fix'");
-                                $taker->namedtag->Commands = new Compound("Commands", []);
+                        $event->setCancelled(true);
+                        if (isset($taker->namedtag->Commands)) {
+                            foreach ($taker->namedtag->Commands as $cmd) {
+                                $this->getServer()->dispatchCommand(new ConsoleCommandSender(), str_ireplace("{player}", $giverName, $cmd));
                             }
+                        } else {
+                            $this->getLogger()->debug("Outdated entity; adding blank commands compound. Please restore commands manually with '/slapper edit " . $taker->getId() . " fix'");
+                            $taker->namedtag->Commands = new Compound("Commands", []);
                         }
                     }
 

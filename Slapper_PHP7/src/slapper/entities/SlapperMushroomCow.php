@@ -5,7 +5,7 @@ use pocketmine\entity\Entity;
 use pocketmine\network\protocol\AddEntityPacket;
 use pocketmine\Player;
 
-class SlapperMushroomCow extends Entity
+class SlapperMushroomCow extends Entity implements SlapperEntity
 {
 
     const NETWORK_ID = 16;

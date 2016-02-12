@@ -5,7 +5,7 @@ use pocketmine\entity\Entity;
 use pocketmine\network\protocol\AddEntityPacket;
 use pocketmine\Player;
 
-class SlapperBat extends Entity
+class SlapperBat extends Entity implements SlapperEntity
 {
 
     const NETWORK_ID = 19;
@@ -34,6 +34,5 @@ class SlapperBat extends Entity
         $player->dataPacket($pk);
         parent::spawnTo($player);
     }
-
 
 }

@@ -3,10 +3,11 @@
 namespace slapper\entities;
 
 use pocketmine\entity\Entity;
+use pocketmine\nbt\tag\Int;
 use pocketmine\network\protocol\AddEntityPacket;
 use pocketmine\Player;
 
-class SlapperZombieVillager extends Entity
+class SlapperZombieVillager extends Entity implements SlapperEntity
 {
 
     const NETWORK_ID = 44;

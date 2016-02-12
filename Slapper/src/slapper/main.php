@@ -8,6 +8,7 @@ use pocketmine\command\ConsoleCommandSender;
 use pocketmine\entity\Entity;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
+use pocketmine\event\entity\EntitySpawnEvent;
 use pocketmine\event\Listener;
 use pocketmine\Item\Item;
 use pocketmine\nbt\tag\Byte;
@@ -32,6 +33,7 @@ use slapper\entities\SlapperChicken;
 use slapper\entities\SlapperCow;
 use slapper\entities\SlapperCreeper;
 use slapper\entities\SlapperEnderman;
+use slapper\entities\SlapperEntity;
 use slapper\entities\SlapperGhast;
 use slapper\entities\SlapperHuman;
 use slapper\entities\SlapperIronGolem;
@@ -55,7 +57,6 @@ use slapper\entities\SlapperZombieVillager;
 
 class main extends PluginBase implements Listener
 {
-
     public $hitSessions;
     public $idSessions;
     public $updateSessions;
@@ -156,8 +157,9 @@ class main extends PluginBase implements Listener
                 $player = $this->getServer()->getPlayer(array_shift($args));
                 if (!($player === null)) {
                     $this->getServer()->dispatchCommand($player, trim(implode(" ", $args)));
+                } else {
+                    $sender->sendMessage(TextFormat::RED . "Player not found.");
                 }
-                $sender->sendMessage(TextFormat::RED . "Player not found.");
                 return true;
                 break;
             case "slapper":
@@ -190,40 +192,9 @@ class main extends PluginBase implements Listener
                             $count = 0;
                             foreach ($server->getLevels() as $level) {
                                 foreach ($level->getEntities() as $entity) {
-                                    if (
-                                        $entity instanceof SlapperHuman ||
-                                        $entity instanceof SlapperSheep ||
-                                        $entity instanceof SlapperPigZombie ||
-                                        $entity instanceof SlapperVillager ||
-                                        $entity instanceof SlapperCaveSpider ||
-                                        $entity instanceof SlapperZombie ||
-                                        $entity instanceof SlapperChicken ||
-                                        $entity instanceof SlapperSpider ||
-                                        $entity instanceof SlapperSilverfish ||
-                                        $entity instanceof SlapperPig ||
-                                        $entity instanceof SlapperCow ||
-                                        $entity instanceof SlapperSlime ||
-                                        $entity instanceof SlapperLavaSlime ||
-                                        $entity instanceof SlapperEnderman ||
-                                        $entity instanceof SlapperMushroomCow ||
-                                        $entity instanceof SlapperBat ||
-                                        $entity instanceof SlapperCreeper ||
-                                        $entity instanceof SlapperSkeleton ||
-                                        $entity instanceof SlapperSquid ||
-                                        $entity instanceof SlapperWolf ||
-                                        $entity instanceof SlapperGhast ||
-                                        $entity instanceof SlapperZombieVillager ||
-                                        $entity instanceof SlapperBlaze ||
-                                        $entity instanceof SlapperOcelot ||
-                                        $entity instanceof SlapperIronGolem ||
-                                        $entity instanceof SlapperSnowman ||
-                                        $entity instanceof SlapperMinecart ||
-                                        $entity instanceof SlapperBoat ||
-                                        $entity instanceof SlapperFallingSand ||
-                                        $entity instanceof SlapperPrimedTNT
-                                    ) {
+                                    if ($entity instanceof SlapperEntity && $entity instanceof Entity) {
                                         $count++;
-                                        if (!($entity->namedtag->Commands)) {
+                                        if (!(isset($entity->namedtag->Commands))) {
                                             $entity->namedtag->Commands = new Compound("Commands", []);
                                         }
                                         $oldCmds = $this->getConfig()->get($entity->getName());
@@ -269,38 +240,7 @@ class main extends PluginBase implements Listener
                                 if (isset($args[0])) {
                                     $entity = $sender->getLevel()->getEntity($args[0]);
                                     if (!($entity == null)) {
-                                        if (
-                                            $entity instanceof SlapperHuman ||
-                                            $entity instanceof SlapperSheep ||
-                                            $entity instanceof SlapperPigZombie ||
-                                            $entity instanceof SlapperVillager ||
-                                            $entity instanceof SlapperCaveSpider ||
-                                            $entity instanceof SlapperZombie ||
-                                            $entity instanceof SlapperChicken ||
-                                            $entity instanceof SlapperSpider ||
-                                            $entity instanceof SlapperSilverfish ||
-                                            $entity instanceof SlapperPig ||
-                                            $entity instanceof SlapperCow ||
-                                            $entity instanceof SlapperSlime ||
-                                            $entity instanceof SlapperLavaSlime ||
-                                            $entity instanceof SlapperEnderman ||
-                                            $entity instanceof SlapperMushroomCow ||
-                                            $entity instanceof SlapperBat ||
-                                            $entity instanceof SlapperCreeper ||
-                                            $entity instanceof SlapperSkeleton ||
-                                            $entity instanceof SlapperSquid ||
-                                            $entity instanceof SlapperWolf ||
-                                            $entity instanceof SlapperGhast ||
-                                            $entity instanceof SlapperZombieVillager ||
-                                            $entity instanceof SlapperBlaze ||
-                                            $entity instanceof SlapperOcelot ||
-                                            $entity instanceof SlapperIronGolem ||
-                                            $entity instanceof SlapperSnowman ||
-                                            $entity instanceof SlapperBoat ||
-                                            $entity instanceof SlapperPrimedTNT ||
-                                            $entity instanceof SlapperFallingSand ||
-                                            $entity instanceof SlapperMinecart
-                                        ) {
+                                        if ($entity instanceof SlapperEntity) {
                                             if ($entity instanceof SlapperHuman) $entity->getInventory()->clearAll();
                                             $entity->kill();
                                             $sender->sendMessage($this->prefix . "Entity removed.");
@@ -326,38 +266,7 @@ class main extends PluginBase implements Listener
                                     $level = $sender->getLevel();
                                     $entity = $level->getEntity($args[0]);
                                     if (!($entity == null)) {
-                                        if (
-                                            $entity instanceof SlapperHuman ||
-                                            $entity instanceof SlapperSheep ||
-                                            $entity instanceof SlapperPigZombie ||
-                                            $entity instanceof SlapperVillager ||
-                                            $entity instanceof SlapperCaveSpider ||
-                                            $entity instanceof SlapperZombie ||
-                                            $entity instanceof SlapperChicken ||
-                                            $entity instanceof SlapperSpider ||
-                                            $entity instanceof SlapperSilverfish ||
-                                            $entity instanceof SlapperPig ||
-                                            $entity instanceof SlapperCow ||
-                                            $entity instanceof SlapperSlime ||
-                                            $entity instanceof SlapperLavaSlime ||
-                                            $entity instanceof SlapperEnderman ||
-                                            $entity instanceof SlapperMushroomCow ||
-                                            $entity instanceof SlapperBat ||
-                                            $entity instanceof SlapperCreeper ||
-                                            $entity instanceof SlapperSkeleton ||
-                                            $entity instanceof SlapperSquid ||
-                                            $entity instanceof SlapperWolf ||
-                                            $entity instanceof SlapperGhast ||
-                                            $entity instanceof SlapperZombieVillager ||
-                                            $entity instanceof SlapperBlaze ||
-                                            $entity instanceof SlapperOcelot ||
-                                            $entity instanceof SlapperIronGolem ||
-                                            $entity instanceof SlapperSnowman ||
-                                            $entity instanceof SlapperMinecart ||
-                                            $entity instanceof SlapperBoat ||
-                                            $entity instanceof SlapperFallingSand ||
-                                            $entity instanceof SlapperPrimedTNT
-                                        ) {
+                                        if ($entity instanceof SlapperEntity && $entity instanceof Entity) {
                                             if (isset($args[1])) {
                                                 switch ($args[1]) {
                                                     case "helm":
@@ -634,6 +543,7 @@ class main extends PluginBase implements Listener
                         case "make":
                         case "create":
                         case "spawn":
+                        case "apawn":
                             $type = array_shift($args);
                             $spawn = true;
                             $name = str_replace("{color}", "§", str_replace("{line}", "\n", trim(implode(" ", $args))));
@@ -818,17 +728,17 @@ class main extends PluginBase implements Listener
                                 $slapperEntity = Entity::createEntity($typeToUse, $sender->getLevel()->getChunk($playerX >> 4, $playerZ >> 4), $nbt);
                                 $sender->sendMessage($this->prefix . $theOne . " entity spawned with name " . TextFormat::WHITE . "\"" . TextFormat::BLUE . $name . TextFormat::WHITE . "\"" . TextFormat::GREEN . " and entity ID " . TextFormat::BLUE . $slapperEntity->getId());
                             }
-                            if ($typeToUse === "SlapperHuman") {
-                                $Inv = $slapperEntity->getInventory();
+                            if (isset($slapperEntity) && $slapperEntity instanceof SlapperHuman) {
+                                $inv = $slapperEntity->getInventory();
 
-                                $Inv->setHelmet($inventory->getHelmet());
-                                $Inv->setChestplate($inventory->getChestplate());
-                                $Inv->setLeggings($inventory->getLeggings());
-                                $Inv->setBoots($inventory->getBoots());
-                                $slapperEntity->getInventory()->setHeldItemSlot($inventory->getHeldItemSlot());
-                                $slapperEntity->getInventory()->setItemInHand($inventory->getItemInHand());
+                                $inv->setHelmet($inventory->getHelmet());
+                                $inv->setChestplate($inventory->getChestplate());
+                                $inv->setLeggings($inventory->getLeggings());
+                                $inv->setBoots($inventory->getBoots());
+                                $inv->setHeldItemSlot($inventory->getHeldItemSlot());
+                                $inv->setItemInHand($inventory->getItemInHand());
                             }
-                            if (!($theOne == "Blank")) $slapperEntity->spawnToAll();
+                            if (!($theOne == "Blank") && isset($slapperEntity)) $slapperEntity->spawnToAll();
                             if ($typeToUse === "Nothing" || $theOne === "Blank") {
                                 if ($spawn) $sender->sendMessage($this->prefix . "Invalid entity.");
                             }
@@ -866,10 +776,10 @@ class main extends PluginBase implements Listener
             "Data" => new String("Data", $skin),
             "Name" => new String("Name", $skinName)
         ]);
-        /* Slapper NBT info */
+        /* Custom Slapper NBT info */
         $nbt->Commands = new Compound("Commands", []);
         $nbt->MenuName = new String("MenuName", "");
-        $nbt->SlapperVersion = new String("SlapperVersion", "1.2.9.2");
+        $nbt->SlapperVersion = new String("SlapperVersion", "1.2.9.3");
         /* FallingSand Block ID */
         $nbt->BlockID = new Int("BlockID", 1);
         /* Name visible */
@@ -883,38 +793,7 @@ class main extends PluginBase implements Listener
     public function onEntityDamage(EntityDamageEvent $event)
     {
         $taker = $event->getEntity();
-        if (
-            $taker instanceof SlapperHuman ||
-            $taker instanceof SlapperSheep ||
-            $taker instanceof SlapperPigZombie ||
-            $taker instanceof SlapperVillager ||
-            $taker instanceof SlapperCaveSpider ||
-            $taker instanceof SlapperZombie ||
-            $taker instanceof SlapperChicken ||
-            $taker instanceof SlapperSpider ||
-            $taker instanceof SlapperSilverfish ||
-            $taker instanceof SlapperPig ||
-            $taker instanceof SlapperCow ||
-            $taker instanceof SlapperSlime ||
-            $taker instanceof SlapperLavaSlime ||
-            $taker instanceof SlapperEnderman ||
-            $taker instanceof SlapperMushroomCow ||
-            $taker instanceof SlapperBat ||
-            $taker instanceof SlapperCreeper ||
-            $taker instanceof SlapperSkeleton ||
-            $taker instanceof SlapperSquid ||
-            $taker instanceof SlapperWolf ||
-            $taker instanceof SlapperGhast ||
-            $taker instanceof SlapperZombieVillager ||
-            $taker instanceof SlapperBlaze ||
-            $taker instanceof SlapperOcelot ||
-            $taker instanceof SlapperIronGolem ||
-            $taker instanceof SlapperSnowman ||
-            $taker instanceof SlapperBoat ||
-            $taker instanceof SlapperPrimedTNT ||
-            $taker instanceof SlapperFallingSand ||
-            $taker instanceof SlapperMinecart
-        ) {
+        if ($taker instanceof SlapperEntity && $taker instanceof Entity) {
             if (!($event instanceof EntityDamageByEntityEvent)) $event->setCancelled(true);
             if ($event instanceof EntityDamageByEntityEvent) {
                 $hitter = $event->getDamager();
@@ -939,8 +818,9 @@ class main extends PluginBase implements Listener
                         }
                         $event->setCancelled(true);
                         if (isset($taker->namedtag->Commands)) {
+                            $server = $this->getServer();
                             foreach ($taker->namedtag->Commands as $cmd) {
-                                $this->getServer()->dispatchCommand(new ConsoleCommandSender(), str_ireplace("{player}", $giverName, $cmd));
+                                $server->dispatchCommand(new ConsoleCommandSender(), str_ireplace("{player}", $giverName, $cmd));
                             }
                         } else {
                             $this->getLogger()->debug("Outdated entity; adding blank commands compound. Please restore commands manually with '/slapper edit " . $taker->getId() . " fix'");
@@ -952,5 +832,15 @@ class main extends PluginBase implements Listener
             }
         }
 
+    }
+
+    public function onEntitySpawn(EntitySpawnEvent $ev)
+    {
+        $entity = $ev->getEntity();
+        if ($entity instanceof SlapperEntity) {
+            $clearLagg = $this->getServer()->getPluginManager()->getPlugin("ClearLagg");
+            if ($clearLagg === null) return;
+            $clearLagg->exemptEntity($entity);
+        }
     }
 }

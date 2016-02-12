@@ -5,7 +5,7 @@ use pocketmine\network\protocol\AddPlayerPacket;
 use pocketmine\network\protocol\PlayerListPacket;
 use pocketmine\Player;
 
-class SlapperHuman extends HumanNPC
+class SlapperHuman extends HumanNPC implements SlapperEntity
 {
 
     public function spawnTo(Player $player)
@@ -48,5 +48,9 @@ class SlapperHuman extends HumanNPC
         }
     }
 
+    public function isSurvival()
+    {
+        return false;
+    }
 
 }

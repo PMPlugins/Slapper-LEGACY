@@ -5,8 +5,9 @@ use pocketmine\network\protocol\AddEntityPacket;
 use pocketmine\network\Network;
 use pocketmine\Player;
 use pocketmine\entity\Entity;
+use slapper\entities\SlapperEntity;
 
-class SlapperFallingSand extends Entity
+class SlapperFallingSand extends Entity implements SlapperEntity
 {
 
     const NETWORK_ID = 66;

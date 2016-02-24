@@ -3,7 +3,7 @@ author: jojoe77777
 version: 1.2.9.3_PHP7
 description: Adds entities into your world that you can slap to run commands!
 main: slapper\main
-api: [1.12.0]
+api: [2.0.0]
 commands:
   slapper:
     description: Create a slappable entity, or edits an existing one!

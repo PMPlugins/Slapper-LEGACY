@@ -436,29 +436,15 @@ class main extends PluginBase implements Listener
                                                     case "delcommand":
                                                     case "removecommand":
                                                         if (isset($args[2])) {
-                                                            if(isset($entity->namedtag->Commands)) {
-                                                                array_shift($args);
-                                                                array_shift($args);
-                                                                $input = trim(implode(" ", $args));
-                                                                if ($int = intval($input) !== 0) {
-                                                                    $newArray = [];
-                                                                    foreach($entity->namedtag->Commands as $cmd){
-                                                                        $newArray[] = $cmd->getValue();
-                                                                    }
-                                                                    unset($entity->namedtag->Commands[$newArray[$int]]);
-                                                                    $sender->sendMessage($this->prefix . "Command removed.");
-                                                                    return true;
-                                                                }
-                                                                unset($entity->namedtag->Commands[$input]);
-                                                                $sender->sendMessage($this->prefix . "Command removed.");
-                                                            } else {
-                                                                $sender->sendMessage($this->prefix . "That entity does not have any commands.");
-                                                            }
+                                                            array_shift($args);
+                                                            array_shift($args);
+                                                            $input = trim(implode(" ", $args));
+                                                            unset($entity->namedtag->Commands[$input]);
+                                                            $sender->sendMessage($this->prefix . "Command removed.");
                                                         } else {
                                                             $sender->sendMessage($this->prefix . "Please enter a command.");
                                                         }
                                                         return true;
-                                                    case "lcs":
                                                     case "listcommands":
                                                     case "listcmds":
                                                     case "listcs":
@@ -793,7 +779,7 @@ class main extends PluginBase implements Listener
         /* Custom Slapper NBT info */
         $nbt->Commands = new CompoundTag("Commands", []);
         $nbt->MenuName = new StringTag("MenuName", "");
-        $nbt->SlapperVersion = new StringTag("SlapperVersion", "1.2.9.4");
+        $nbt->SlapperVersion = new StringTag("SlapperVersion", "1.2.9.3");
         /* FallingSand Block ID */
         $nbt->BlockID = new IntTag("BlockID", 1);
         /* Name visible */

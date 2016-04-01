@@ -11,7 +11,7 @@ use slapper\entities\SlapperEntity;
 class SlapperPrimedTNT extends Entity implements SlapperEntity
 {
 
-    const NETWORK_ID = 65;
+    const NETWORK_ID = -1;
 
     public $height = 1.1;
 
@@ -25,7 +25,7 @@ class SlapperPrimedTNT extends Entity implements SlapperEntity
 
         $pk = new AddEntityPacket();
         $pk->eid = $this->getId();
-        $pk->type = self::NETWORK_ID;
+        $pk->type = 65;
         $pk->x = $this->x;
         $pk->y = $this->y + 0.5;
         $pk->z = $this->z;

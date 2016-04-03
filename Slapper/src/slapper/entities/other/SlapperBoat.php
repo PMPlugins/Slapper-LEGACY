@@ -11,7 +11,7 @@ use slapper\entities\SlapperEntity;
 class SlapperBoat extends Entity implements SlapperEntity
 {
 
-    const NETWORK_ID = 90;
+    const NETWORK_ID = -1;
 
     public $height = 0.6;
 
@@ -25,7 +25,7 @@ class SlapperBoat extends Entity implements SlapperEntity
 
         $pk = new AddEntityPacket();
         $pk->eid = $this->getId();
-        $pk->type = self::NETWORK_ID;
+        $pk->type = 90;
         $pk->x = $this->x;
         $pk->y = $this->y;
         $pk->z = $this->z;

@@ -3,14 +3,14 @@
 namespace slapper\entities;
 
 use pocketmine\entity\Entity;
-use pocketmine\nbt\tag\Int;
 use pocketmine\network\protocol\AddEntityPacket;
+use pocketmine\nbt\tag\Int;
 use pocketmine\Player;
 
 class SlapperZombieVillager extends Entity implements SlapperEntity
 {
 
-    const NETWORK_ID = 44;
+    const NETWORK_ID = -1;
 
     public function getName()
     {
@@ -21,7 +21,7 @@ class SlapperZombieVillager extends Entity implements SlapperEntity
     {
         $pk = new AddEntityPacket();
         $pk->eid = $this->getId();
-        $pk->type = self::NETWORK_ID;
+        $pk->type = 44;
         $pk->x = $this->x;
         $pk->y = $this->y;
         $pk->z = $this->z;

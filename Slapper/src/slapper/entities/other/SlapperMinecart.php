@@ -11,7 +11,7 @@ use slapper\entities\SlapperEntity;
 class SlapperMinecart extends Entity implements SlapperEntity
 {
 
-    const NETWORK_ID = 84;
+    const NETWORK_ID = -1;
 
     public function getName()
     {
@@ -23,7 +23,7 @@ class SlapperMinecart extends Entity implements SlapperEntity
 
         $pk = new AddEntityPacket();
         $pk->eid = $this->getId();
-        $pk->type = self::NETWORK_ID;
+        $pk->type = 84;
         $pk->x = $this->x;
         $pk->y = $this->y;
         $pk->z = $this->z;

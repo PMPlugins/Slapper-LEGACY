@@ -8,7 +8,7 @@ use pocketmine\Player;
 class SlapperEnderman extends Entity implements SlapperEntity
 {
 
-    const NETWORK_ID = 38;
+    const NETWORK_ID = -1;
 
     public function getName()
     {
@@ -20,7 +20,7 @@ class SlapperEnderman extends Entity implements SlapperEntity
 
         $pk = new AddEntityPacket();
         $pk->eid = $this->getId();
-        $pk->type = self::NETWORK_ID;
+        $pk->type = 38;
         $pk->x = $this->x;
         $pk->y = $this->y;
         $pk->z = $this->z;

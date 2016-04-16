@@ -779,7 +779,7 @@ class main extends PluginBase implements Listener
         /* Custom Slapper NBT info */
         $nbt->Commands = new CompoundTag("Commands", []);
         $nbt->MenuName = new StringTag("MenuName", "");
-        $nbt->SlapperVersion = new StringTag("SlapperVersion", "1.2.9.3");
+        $nbt->SlapperVersion = new StringTag("SlapperVersion", "1.2.9.4");
         /* FallingSand Block ID */
         $nbt->BlockID = new IntTag("BlockID", 1);
         /* Name visible */

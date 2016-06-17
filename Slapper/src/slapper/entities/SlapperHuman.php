@@ -29,7 +29,9 @@ class SlapperHuman extends HumanNPC implements SlapperEntity
             $pk->metadata = [
                 2 => [4, str_ireplace("{name}", $player->getName(), str_ireplace("{display_name}", $player->getDisplayName(), $player->hasPermission("slapper.seeId") ? $this->getDataProperty(2) . "\n" . \pocketmine\utils\TextFormat::GREEN . "Entity ID: " . $entityId : $this->getDataProperty(2)))],
                 3 => [0, $this->getDataProperty(3)],
-                15 => [0, 1]
+                15 => [0, 1],
+		23 => [7, -1],
+		24 => [0, 0]
             ];
             $player->dataPacket($pk);
 

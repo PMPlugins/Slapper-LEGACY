@@ -4,6 +4,8 @@ version: 1.2.9.4
 description: Adds entities into your world that you can slap to run commands!
 main: slapper\main
 api: [2.0.0]
+website: https://github.com/PMPlugins/Slapper
+
 commands:
   slapper:
     description: Create a slappable entity, or edits an existing one!

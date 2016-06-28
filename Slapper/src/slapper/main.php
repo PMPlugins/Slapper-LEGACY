@@ -53,9 +53,19 @@ use slapper\entities\SlapperVillager;
 use slapper\entities\SlapperWolf;
 use slapper\entities\SlapperZombie;
 use slapper\entities\SlapperZombieVillager;
+use slapper\entities\SlapperHorse;
+use slapper\entities\SlapperDonkey;
+use slapper\entities\SlapperMule;
+use slapper\entities\SlapperSkeletonHorse;
+use slapper\entities\SlapperZombieHorse;
+use slapper\entities\SlapperWitch;
+use slapper\entities\SlapperStray;
+use slapper\entities\SlapperHusk;
+use slapper\entities\SlapperWitherSkeleton;
+use slapper\entities\SlapperRabbit;
 
 
-class main extends PluginBase implements Listener
+class Main extends PluginBase implements Listener
 {
     public $hitSessions;
     public $idSessions;
@@ -95,17 +105,7 @@ class main extends PluginBase implements Listener
         "menuname: /slapper edit <eid> menuname <name/remove>"
     ];
 
-    public function onEnable()
-    {
-        $server = $this->getServer();
-        if (
-            stripos($server->getVersion(), "10") ||
-            stripos($server->getVersion(), "11") ||
-            stripos($server->getVersion(), "12")
-        ) {
-            $this->getLogger()->error($this->prefix . "Slapper currently only supports 0.13 servers or later. Disabling.");
-            $server->getPluginManager()->disablePlugin($this);
-        }
+    public function onEnable() {
         $this->hitSessions = [];
         $this->idSessions = [];
         $this->updateSessions = [];
@@ -138,29 +138,40 @@ class main extends PluginBase implements Listener
         Entity::registerEntity(SlapperBoat::class, true);
         Entity::registerEntity(SlapperMinecart::class, true);
         Entity::registerEntity(SlapperPrimedTNT::class, true);
+        Entity::registerEntity(SlapperHorse::class, true);
+        Entity::registerEntity(SlapperDonkey::class, true);
+        Entity::registerEntity(SlapperMule::class, true);
+        Entity::registerEntity(SlapperSkeletonHorse::class, true);
+        Entity::registerEntity(SlapperZombieHorse::class, true);
+        Entity::registerEntity(SlapperRabbit::class, true);
+        Entity::registerEntity(SlapperWitch::class, true);
+        Entity::registerEntity(SlapperStray::class, true);
+        Entity::registerEntity(SlapperHusk::class, true);
+        Entity::registerEntity(SlapperWitherSkeleton::class, true);
         Entity::registerEntity(SlapperFallingSand::class, true);
         $this->getLogger()->debug("Entities have been registered!");
-        $server->getPluginManager()->registerEvents($this, $this);
+        $this->getServer()->getPluginManager()->registerEvents($this, $this);
         $this->getLogger()->debug("Events have been registered!");
     }
 
-    public function onCommand(CommandSender $sender, Command $command, $label, array $args)
-    {
+    public function onCommand(CommandSender $sender, Command $command, $label, array $args) {
         switch (strtolower($command->getName())) {
             case 'nothing':
                 return true;
                 break;
             case 'rca':
                 if (count($args) < 2) {
-                    $sender->sendMessage("Please enter a player and a command.");
+                    $sender->sendMessage($this->prefix . "Please enter a player and a command.");
+                    return true;
                 }
                 $player = $this->getServer()->getPlayer(array_shift($args));
-                if (!($player === null)) {
+                if ($player !== null) {
                     $this->getServer()->dispatchCommand($player, trim(implode(" ", $args)));
+                    return true;
                 } else {
-                    $sender->sendMessage(TextFormat::RED . "Player not found.");
+                    $sender->sendMessage($this->prefix . "Player not found.");
+                    return true;
                 }
-                return true;
                 break;
             case "slapper":
                 if ($sender instanceof Player) {
@@ -182,8 +193,8 @@ class main extends PluginBase implements Listener
                                 return true;
                             } else {
                                 $sender->sendMessage($this->noperm);
+                                return true;
                             }
-                            return true;
                             break;
                         case "fixall":
                         case "updateall":
@@ -223,8 +234,8 @@ class main extends PluginBase implements Listener
                                 return true;
                             } else {
                                 $sender->sendMessage($this->noperm);
+                                return true;
                             }
-                            return true;
                             break;
                         case "cancel":
                         case "stopremove":
@@ -552,50 +563,63 @@ class main extends PluginBase implements Listener
                                 return true;
                             }
                             $defaultName = $sender->getDisplayName();
-                            if (empty($name)) $name = $defaultName;
+                            if (empty($name)) {
+                                $name = $defaultName;
+                            }
                             $playerX = $sender->getX();
                             $playerY = $sender->getY();
                             $playerZ = $sender->getZ();
                             $inventory = $sender->getInventory();
                             $theOne = "Blank";
-                            foreach ([
-                                         "Chicken",
-                                         "ZombiePigman",
-                                         "Pig",
-                                         "Sheep",
-                                         "Cow",
-                                         "Mooshroom",
-                                         "MushroomCow",
-                                         "Wolf",
-                                         "Enderman",
-                                         "Spider",
-                                         "Skeleton",
-                                         "PigZombie",
-                                         "Creeper",
-                                         "Slime",
-                                         "Silverfish",
-                                         "Villager",
-                                         "Zombie",
-                                         "Human",
-                                         "Player",
-                                         "Squid",
-                                         "Bat",
-                                         "CaveSpider",
-                                         "LavaSlime",
-                                         "Ghast",
-                                         "Ocelot",
-                                         "Blaze",
-                                         "ZombieVillager",
-                                         "VillagerZombie",
-                                         "Snowman",
-                                         "SnowGolem",
-                                         "Minecart",
-                                         "FallingSand",
-                                         "FallingBlock",
-                                         "FakeBlock",
-                                         "Boat",
-                                         "PrimedTNT"
-                                     ] as $entityType) {
+                            foreach (
+                                [
+                                    "Chicken",
+                                    "ZombiePigman",
+                                    "Pig",
+                                    "Sheep",
+                                    "Cow",
+                                    "Mooshroom",
+                                    "MushroomCow",
+                                    "Wolf",
+                                    "Enderman",
+                                    "Spider",
+                                    "Skeleton",
+                                    "PigZombie",
+                                    "Creeper",
+                                    "Slime",
+                                    "Silverfish",
+                                    "Villager",
+                                    "Zombie",
+                                    "Human",
+                                    "Player",
+                                    "Squid",
+                                    "Bat",
+                                    "CaveSpider",
+                                    "LavaSlime",
+                                    "Ghast",
+                                    "Ocelot",
+                                    "Blaze",
+                                    "ZombieVillager",
+                                    "VillagerZombie",
+                                    "Snowman",
+                                    "SnowGolem",
+                                    "Minecart",
+                                    "FallingSand",
+                                    "FallingBlock",
+                                    "FakeBlock",
+                                    "Boat",
+                                    "PrimedTNT",
+                                    "Horse",
+                                    "Donkey",
+                                    "Mule",
+                                    "SkeletonHorse",
+                                    "ZombieHorse",
+                                    "Witch",
+                                    "Rabbit",
+                                    "Stray",
+                                    "Husk",
+                                    "WitherSkeleton"
+                                ] as $entityType) {
                                 if (strtolower($type) === strtolower($entityType)) {
                                     $theOne = $entityType;
                                 }
@@ -674,7 +698,6 @@ class main extends PluginBase implements Listener
                                 case "ZombiePigman":
                                     $typeToUse = "SlapperPigZombie";
                                     break;
-
                                 case "PrimedTNT":
                                     $typeToUse = "SlapperPrimedTNT";
                                     break;
@@ -693,8 +716,6 @@ class main extends PluginBase implements Listener
                                 case "FakeBlock":
                                     $typeToUse = "SlapperFallingSand";
                                     break;
-                            }
-                            switch ($theOne) {
                                 case "ZombieVillager":
                                     $typeToUse = "SlapperZombieVillager";
                                     break;
@@ -722,9 +743,39 @@ class main extends PluginBase implements Listener
                                 case "Ocelot":
                                     $typeToUse = "SlapperOcelot";
                                     break;
+                                case "Horse":
+                                    $typeToUse = "SlapperHorse";
+                                    break;
+                                case "Donkey":
+                                    $typeToUse = "SlapperDonkey";
+                                    break;
+                                case "Mule":
+                                    $typeToUse = "SlapperMule";
+                                    break;
+                                case "SkeletonHorse":
+                                    $typeToUse = "SlapperSkeletonHorse";
+                                    break;
+                                case "ZombieHorse":
+                                    $typeToUse = "SlapperZombieHorse";
+                                    break;
+                                case "Witch":
+                                    $typeToUse = "SlapperWitch";
+                                    break;
+                                case "Husk":
+                                    $typeToUse = "SlapperHusk";
+                                    break;
+                                case "Stray":
+                                    $typeToUse = "SlapperStray";
+                                    break;
+                                case "WitherSkeleton":
+                                    $typeToUse = "SlapperWitherSkeleton";
+                                    break;
+                                case "Rabbit":
+                                    $typeToUse = "SlapperRabbit";
+                                    break;
                             }
                             if (!($typeToUse === "Nothing") && !($theOne === "Blank")) {
-                                $nbt = $this->makeNBT($sender->getSkinData(), $sender->getSkinName(), $name, $inventory, $sender->getYaw(), $sender->getPitch(), $playerX, $playerY, $playerZ);
+                                $nbt = $this->makeNBT($typeToUse, $sender->getSkinData(), $sender->getSkinId(), $name, $inventory, $sender->getYaw(), $sender->getPitch(), $playerX, $playerY, $playerZ);
                                 $slapperEntity = Entity::createEntity($typeToUse, $sender->getLevel()->getChunk($playerX >> 4, $playerZ >> 4), $nbt);
                                 $sender->sendMessage($this->prefix . $theOne . " entity spawned with name " . TextFormat::WHITE . "\"" . TextFormat::BLUE . $name . TextFormat::WHITE . "\"" . TextFormat::GREEN . " and entity ID " . TextFormat::BLUE . $slapperEntity->getId());
                             }
@@ -738,9 +789,13 @@ class main extends PluginBase implements Listener
                                 $inv->setHeldItemSlot($inventory->getHeldItemSlot());
                                 $inv->setItemInHand($inventory->getItemInHand());
                             }
-                            if (!($theOne == "Blank") && isset($slapperEntity)) $slapperEntity->spawnToAll();
+                            if (!($theOne == "Blank") && isset($slapperEntity)) {
+                                $slapperEntity->spawnToAll();
+                            }
                             if ($typeToUse === "Nothing" || $theOne === "Blank") {
-                                if ($spawn) $sender->sendMessage($this->prefix . "Invalid entity.");
+                                if ($spawn) {
+                                    $sender->sendMessage($this->prefix . "Invalid entity.");
+                                }
                             }
                             return true;
                         default:
@@ -755,7 +810,7 @@ class main extends PluginBase implements Listener
         return true;
     }
 
-    private function makeNBT($skin, $skinName, $name, $inv, $yaw, $pitch, $x, $y, $z)
+    private function makeNBT($type, $skin, $skinId, $name, $inv, $yaw, $pitch, $x, $y, $z)
     {
         $nbt = new CompoundTag;
         $nbt->Pos = new ListTag("Pos", [
@@ -768,22 +823,20 @@ class main extends PluginBase implements Listener
             new FloatTag("", $pitch)
         ]);
         $nbt->Health = new ShortTag("Health", 1);
-        $nbt->Inventory = new ListTag("Inventory", $inv);
         $nbt->CustomName = new StringTag("CustomName", $name);
-        $nbt->CustomNameVisible = new ByteTag("CustomNameVisible", 1);
-        $nbt->Invulnerable = new ByteTag("Invulnerable", 1);
-        $nbt->Skin = new CompoundTag("Skin", [
-            "Data" => new StringTag("Data", $skin),
-            "Name" => new StringTag("Name", $skinName)
-        ]);
-        /* Custom Slapper NBT info */
         $nbt->Commands = new CompoundTag("Commands", []);
         $nbt->MenuName = new StringTag("MenuName", "");
-        $nbt->SlapperVersion = new StringTag("SlapperVersion", "1.2.9.4");
-        /* FallingSand Block ID */
-        $nbt->BlockID = new IntTag("BlockID", 1);
-        /* Name visible */
+        $nbt->SlapperVersion = new StringTag("SlapperVersion", "1.2.9.5");
         $nbt->CustomNameVisible = new ByteTag("CustomNameVisible", 1);
+        switch($type) {
+            case "SlapperHuman":
+                $nbt->Inventory = new ListTag("Inventory", $inv);
+                $nbt->Skin = new CompoundTag("Skin", ["Data" => new StringTag("Data", $skin), "Name" => new StringTag("Name", $skinId)]);
+                break;
+            case "SlapperFallingSand":
+                $nbt->BlockID = new IntTag("BlockID", 1);
+                break;
+        }
         return $nbt;
     }
 
@@ -793,7 +846,7 @@ class main extends PluginBase implements Listener
     public function onEntityDamage(EntityDamageEvent $event)
     {
         $taker = $event->getEntity();
-        if ($taker instanceof SlapperEntity && $taker instanceof Entity) {
+        if ($taker instanceof SlapperEntity || $taker instanceof SlapperHuman) {
             if (!($event instanceof EntityDamageByEntityEvent)) $event->setCancelled(true);
             if ($event instanceof EntityDamageByEntityEvent) {
                 $hitter = $event->getDamager();
@@ -804,8 +857,10 @@ class main extends PluginBase implements Listener
                     $giverName = $hitter->getName();
                     if ($hitter instanceof Player) {
                         if (isset($this->hitSessions[$giverName])) {
-                            if ($taker instanceof SlapperHuman) $taker->getInventory()->clearAll();
-                            $taker->kill();
+                            if ($taker instanceof SlapperHuman) {
+                                $taker->getInventory()->clearAll();
+                            }
+                            $taker->close();
                             unset($this->hitSessions[$giverName]);
                             $hitter->sendMessage($this->prefix . "Entity removed.");
                             return;
@@ -839,8 +894,9 @@ class main extends PluginBase implements Listener
         $entity = $ev->getEntity();
         if ($entity instanceof SlapperEntity) {
             $clearLagg = $this->getServer()->getPluginManager()->getPlugin("ClearLagg");
-            if ($clearLagg === null) return;
-            $clearLagg->exemptEntity($entity);
+            if ($clearLagg !== null) {
+                $clearLagg->exemptEntity($entity);
+            }
         }
     }
 }

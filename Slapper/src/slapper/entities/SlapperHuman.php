@@ -1,12 +1,12 @@
 <?php
 namespace slapper\entities;
 
+use pocketmine\entity\Human;
 use pocketmine\network\protocol\AddPlayerPacket;
 use pocketmine\network\protocol\PlayerListPacket;
 use pocketmine\Player;
 
-class SlapperHuman extends HumanNPC implements SlapperEntity
-{
+class SlapperHuman extends Human {
 
     public function spawnTo(Player $player)
     {
@@ -30,8 +30,8 @@ class SlapperHuman extends HumanNPC implements SlapperEntity
                 2 => [4, str_ireplace("{name}", $player->getName(), str_ireplace("{display_name}", $player->getDisplayName(), $player->hasPermission("slapper.seeId") ? $this->getDataProperty(2) . "\n" . \pocketmine\utils\TextFormat::GREEN . "Entity ID: " . $entityId : $this->getDataProperty(2)))],
                 3 => [0, $this->getDataProperty(3)],
                 15 => [0, 1],
-		23 => [7, -1],
-		24 => [0, 0]
+		        23 => [7, -1],
+		        24 => [0, 0]
             ];
             $player->dataPacket($pk);
 
@@ -39,7 +39,7 @@ class SlapperHuman extends HumanNPC implements SlapperEntity
 
             $add = new PlayerListPacket();
             $add->type = 0;
-            $add->entries[] = [$uuid, $entityId, isset($this->namedtag->MenuName) ? $this->namedtag["MenuName"] : "", $this->skinName, $this->skin];
+            $add->entries[] = [$uuid, $entityId, isset($this->namedtag->MenuName) ? $this->namedtag["MenuName"] : "", $this->skinId, $this->skin];
             $player->dataPacket($add);
             if ($this->namedtag["MenuName"] === "") {
                 $remove = new PlayerListPacket();
@@ -49,10 +49,4 @@ class SlapperHuman extends HumanNPC implements SlapperEntity
             }
         }
     }
-
-    public function isSurvival()
-    {
-        return false;
-    }
-
 }

@@ -4,5 +4,25 @@
     <content url="file://$MODULE_DIR$" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module-library">
+      <library name="PHARS">
+        <CLASSES>
+          <root url="phar://$MODULE_DIR$/Slapper_v1.2.9.4.phar" />
+        </CLASSES>
+        <SOURCES>
+          <root url="phar://$MODULE_DIR$/Slapper_v1.2.9.4.phar" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="PHP">
+        <CLASSES>
+          <root url="file://$USER_HOME$/Dropbox/PocketMine copy/src" />
+        </CLASSES>
+        <SOURCES>
+          <root url="file://$USER_HOME$/Dropbox/PocketMine copy/src" />
+        </SOURCES>
+      </library>
+    </orderEntry>
   </component>
 </module>

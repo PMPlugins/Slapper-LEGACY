@@ -203,7 +203,7 @@ class Main extends PluginBase implements Listener
                             $count = 0;
                             foreach ($server->getLevels() as $level) {
                                 foreach ($level->getEntities() as $entity) {
-                                    if ($entity instanceof SlapperEntity && $entity instanceof Entity) {
+                                    if ($entity instanceof SlapperEntity || $entity instanceof SlapperHuman) {
                                         $count++;
                                         if (!(isset($entity->namedtag->Commands))) {
                                             $entity->namedtag->Commands = new CompoundTag("Commands", []);
@@ -251,8 +251,10 @@ class Main extends PluginBase implements Listener
                                 if (isset($args[0])) {
                                     $entity = $sender->getLevel()->getEntity($args[0]);
                                     if (!($entity == null)) {
-                                        if ($entity instanceof SlapperEntity) {
-                                            if ($entity instanceof SlapperHuman) $entity->getInventory()->clearAll();
+                                        if ($entity instanceof SlapperEntity || $entity instanceof SlapperHuman) {
+                                            if ($entity instanceof SlapperHuman){
+                                               $entity->getInventory()->clearAll(); 
+                                            }
                                             $entity->kill();
                                             $sender->sendMessage($this->prefix . "Entity removed.");
                                         } else {
@@ -277,7 +279,7 @@ class Main extends PluginBase implements Listener
                                     $level = $sender->getLevel();
                                     $entity = $level->getEntity($args[0]);
                                     if (!($entity == null)) {
-                                        if ($entity instanceof SlapperEntity && $entity instanceof Entity) {
+                                        if ($entity instanceof SlapperEntity || $entity instanceof SlapperHuman) {
                                             if (isset($args[1])) {
                                                 switch ($args[1]) {
                                                     case "helm":
@@ -892,7 +894,7 @@ class Main extends PluginBase implements Listener
     public function onEntitySpawn(EntitySpawnEvent $ev)
     {
         $entity = $ev->getEntity();
-        if ($entity instanceof SlapperEntity) {
+        if ($entity instanceof SlapperEntity || $entity instanceof SlapperHuman) {
             $clearLagg = $this->getServer()->getPluginManager()->getPlugin("ClearLagg");
             if ($clearLagg !== null) {
                 $clearLagg->exemptEntity($entity);

@@ -216,7 +216,7 @@ class Main extends PluginBase implements Listener
                                         }
                                     }
                                     if ($entity instanceof SlapperHuman) {
-                                        if ($entity->getSkinName() === "") {
+                                        if ($entity->getSkinId() === "") {
                                             $entity->setSkin($entity->getSkinData(), "Standard_Custom");
                                             $entity->despawnFromAll();
                                             $entity->spawnToAll();
@@ -361,7 +361,7 @@ class Main extends PluginBase implements Listener
                                                     case "editskin";
                                                     case "skin":
                                                         if ($entity instanceof SlapperHuman) {
-                                                            $entity->setSkin($sender->getSkinData(), $sender->getSkinName());
+                                                            $entity->setSkin($sender->getSkinData(), $sender->getSkinId());
                                                             $entity->respawnToAll();
                                                             $sender->sendMessage($this->prefix . "Skin updated.");
                                                         } else {

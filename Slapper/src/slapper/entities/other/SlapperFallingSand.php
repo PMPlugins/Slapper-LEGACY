@@ -22,12 +22,9 @@ class SlapperFallingSand extends SlapperEntity
         $pk->yaw = $this->yaw;
         $pk->pitch = $this->pitch;
         $pk->metadata = [
-            2 => [4, str_ireplace("{name}", $player->getName(), str_ireplace("{display_name}", $player->getDisplayName(), $player->hasPermission("slapper.seeId") ? $this->getDataProperty(2) . "\n" . \pocketmine\utils\TextFormat::GREEN . "Entity ID: " . $this->getId() : $this->getDataProperty(2)))],
-            3 => [0, $this->getDataProperty(3)],
             15 => [0, 1],
             23 => [7, -1],
             24 => [0, 0]
-
         ];
         if (isset($this->namedtag->BlockID)) {
             $pk->metadata[20] = [2, $this->namedtag->BlockID->getValue()];
@@ -35,7 +32,9 @@ class SlapperFallingSand extends SlapperEntity
             $pk->metadata[20] = [2, 1];
         }
         $player->dataPacket($pk);
-        parent::spawnTo($player);
+        if($this->getDataProperty(3) === 1){
+            $this->addNametag($this->getDisplayName($player), $player);
+        }        
     }
 
 

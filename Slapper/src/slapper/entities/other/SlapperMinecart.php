@@ -8,5 +8,6 @@ class SlapperMinecart extends SlapperEntity
 {
 
     public $entityId = 84;
+    public $offset = 0.3;
 
 }

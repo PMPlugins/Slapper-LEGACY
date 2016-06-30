@@ -828,7 +828,7 @@ class Main extends PluginBase implements Listener
         $nbt->CustomName = new StringTag("CustomName", $name);
         $nbt->Commands = new CompoundTag("Commands", []);
         $nbt->MenuName = new StringTag("MenuName", "");
-        $nbt->SlapperVersion = new StringTag("SlapperVersion", "1.2.9.5");
+        $nbt->SlapperVersion = new StringTag("SlapperVersion", "1.2.9.6");
         $nbt->CustomNameVisible = new ByteTag("CustomNameVisible", 1);
         switch($type) {
             case "SlapperHuman":

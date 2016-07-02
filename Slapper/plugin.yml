@@ -1,6 +1,6 @@
 name: Slapper
 author: jojoe77777
-version: 1.2.9.6
+version: 1.2.9.6_CACHE
 description: Adds entities into your world that you can slap to run commands!
 main: slapper\Main
 api: [2.0.0]
@@ -19,6 +19,10 @@ commands:
     description: Do nothing!
     usage: "/nothing"
     permission: slapper.nothing
+  slapperrestore:
+    description: Restore slappers
+    usage: "/slapperrestore"
+    permission: slapper.restore
 
 permissions:
   slapper:
@@ -64,3 +68,7 @@ permissions:
   slapper.seeId:
     description: Allow seeing entity IDs under Slapper entities' names
     default: false
+
+  slapper.restore:
+    description: Allow restoring slappers
+    default: op

@@ -5,16 +5,12 @@ namespace slapper;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\command\ConsoleCommandSender;
-
 use pocketmine\entity\Entity;
-
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntitySpawnEvent;
 use pocketmine\event\Listener;
-
 use pocketmine\Item\Item;
-
 use pocketmine\nbt\tag\ByteTag;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\nbt\tag\DoubleTag;
@@ -23,18 +19,13 @@ use pocketmine\nbt\tag\FloatTag;
 use pocketmine\nbt\tag\IntTag;
 use pocketmine\nbt\tag\ShortTag;
 use pocketmine\nbt\tag\StringTag;
-
 use pocketmine\Player;
-
 use pocketmine\plugin\PluginBase;
-
 use pocketmine\utils\TextFormat;
-
 use slapper\entities\other\SlapperBoat;
 use slapper\entities\other\SlapperFallingSand;
 use slapper\entities\other\SlapperMinecart;
 use slapper\entities\other\SlapperPrimedTNT;
-
 use slapper\entities\SlapperBat;
 use slapper\entities\SlapperBlaze;
 use slapper\entities\SlapperCaveSpider;
@@ -76,9 +67,9 @@ use slapper\entities\SlapperRabbit;
 
 class Main extends PluginBase implements Listener
 {
-    public $hitSessions = [];
-    public $idSessions = [];
-    public $updateSessions = [];
+    public $hitSessions;
+    public $idSessions;
+    public $updateSessions;
     public $prefix = (TextFormat::GREEN . "[" . TextFormat::YELLOW . "Slapper" . TextFormat::GREEN . "] ");
     public $noperm = (TextFormat::GREEN . "[" . TextFormat::YELLOW . "Slapper" . TextFormat::GREEN . "] You don't have permission.");
     public $helpHeader =
@@ -114,7 +105,13 @@ class Main extends PluginBase implements Listener
         "menuname: /slapper edit <eid> menuname <name/remove>"
     ];
 
+    private $SlapperCacheDir = "cache";
+    private $SlapperStateFile = "slappers_restored_file";
+
     public function onEnable() {
+        $this->hitSessions = [];
+        $this->idSessions = [];
+        $this->updateSessions = [];
         Entity::registerEntity(SlapperCreeper::class, true);
         Entity::registerEntity(SlapperBat::class, true);
         Entity::registerEntity(SlapperSheep::class, true);
@@ -158,20 +155,156 @@ class Main extends PluginBase implements Listener
         $this->getLogger()->debug("Entities have been registered!");
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
         $this->getLogger()->debug("Events have been registered!");
+        $this->initDataDirs();
+        $this->checkForSlapperRestore();
     }
 
-    public function onCommand(CommandSender $sender, Command $command, $label, array $args){
-        switch(strtolower($command->getName())){
+    public function initDataDirs() {
+        if (!is_dir($this->getDataFolder()))
+            mkdir($this->getDataFolder());
+        if (!is_dir($this->getDataFolder() . $this->SlapperCacheDir))
+            mkdir($this->getDataFolder() . $this->SlapperCacheDir);
+    }
+
+    public function checkForSlapperRestore($sender = null) {
+
+        $trigger_file = $this->getDataFolder() . $this->SlapperCacheDir . DIRECTORY_SEPARATOR . $this->SlapperStateFile;
+
+        if (!is_file($trigger_file)) {
+            if ($sender != null) {
+                $sender->sendMessage($this->prefix . "Restoring Slappers from Cache.");
+            }
+            $this->getLogger()->info("Restoring Slappers from Cache");
+            $this->uncacheSlappers($sender);
+            touch($trigger_file);
+        } else {
+            if ($sender != null) {
+                $sender->sendMessage($this->prefix . "] No action taken - delete $this->SlapperStateFile to refresh slappers.");
+            }
+            $this->getLogger()->info("Slappers OK - No need to restore");
+        }
+
+    }
+
+    public function cacheSlapper($sender, $typeToUse, $nbt, $clonedHuman, $name) {
+
+        //serialize and save slapper NBT and inventory data
+
+        $invData = Array();
+        $objHash = substr(md5(spl_object_hash($nbt)), 0, 8);
+
+        $serializedNBT = serialize($nbt);
+        $fileName = $this->getDataFolder() . $this->SlapperCacheDir . DIRECTORY_SEPARATOR . $typeToUse . "." . $sender->getLevel()->getName() . "." .  $name . "." . $objHash . ".slp";
+
+        if (file_put_contents($fileName, $serializedNBT)) {
+            $this->getLogger()->debug("Wrote NBT Serial File: $fileName");
+        }
+
+        //save inventory data if human
+        if ($typeToUse == "SlapperHuman") {
+
+            $humanInv = $clonedHuman->getInventory();
+            $invData[] = $humanInv->getHelmet();
+            $invData[] = $humanInv->getChestplate();
+            $invData[] = $humanInv->getLeggings();
+            $invData[] = $humanInv->getBoots();
+            $invData[] = $sender->getInventory()->getHeldItemSlot();
+            $invData[] = $sender->getInventory()->getItemInHand();
+            $serializedInvData = serialize($invData);
+
+            $fileName = $this->getDataFolder() . $this->SlapperCacheDir . DIRECTORY_SEPARATOR . $typeToUse . "." . $sender->getLevel()->getName() . "." . $name . "." . $objHash . ".slp.inv";
+            if (file_put_contents($fileName, $serializedInvData)) {
+                $this->getLogger()->debug("Wrote Inventory Serial File: $fileName");
+            }
+        }
+    }
+
+    public function uncacheSlappers($sender = null) {
+
+        $this->getLogger()->debug(__FUNCTION__);
+
+        $files = glob($this->getDataFolder() . $this->SlapperCacheDir . DIRECTORY_SEPARATOR . "*.slp");
+        foreach ($files as $file) {
+            $fileName = basename($file, ".slp");
+            $this->getLogger()->debug(__FUNCTION__ . " Found Slapper: $fileName");
+            $clonedHuman = $this->uncacheSlapper($sender, $file);
+            if ($clonedHuman != null) {
+                $clonedHuman->spawnToAll();
+            } else {
+                $this->getLogger()->debug(__FUNCTION__ . " Slapper $fileName Null, possibly because world is not present, not spawning");
+            }
+
+        }
+    }
+
+    public function uncacheSlapper($sender, $file) {
+
+        $fileName = basename($file, ".slp");
+        // like SlapperCreeper.world.Von.d603217a
+        // or   SlapperHuman.world.Von.383d2bb4
+        $fileParts = explode(".", $fileName);
+        $typeToUse = $fileParts[0];
+        $world = $fileParts[1];
+
+        $level = $this->getServer()->getLevelByName($world);
+        if ($level == null) {
+            return null;
+        }
+
+        $this->getLogger()->debug(__FUNCTION__ . " Processing $fileName, type $typeToUse, world $world");
+
+        if (!$data = file_get_contents($file)) {
+            $this->getLogger()->debug(__FUNCTION__ . " Could not open slapper cache file: " . $file);
+            return null;
+        }
+
+        $nbt = unserialize($data);
+
+        $playerX = $nbt->Pos[0];
+        $playerZ = $nbt->Pos[2];
+
+        $clonedHuman = Entity::createEntity($typeToUse, $level->getChunk($playerX >> 4, $playerZ >> 4), $nbt);
+
+        if ($typeToUse == "SlapperHuman") {
+
+            $file .= ".inv";
+            $this->getLogger()->debug(__FUNCTION__ . " Open Slapper Inventory File " . $file);
+
+            $data = file_get_contents($file);
+            $inventoryArray = unserialize($data);
+
+            $humanInv = $clonedHuman->getInventory();
+            $humanInv->setHelmet($inventoryArray[0]);
+            $humanInv->setChestplate($inventoryArray[1]);
+            $humanInv->setLeggings($inventoryArray[2]);
+            $humanInv->setBoots($inventoryArray[3]);
+            $clonedHuman->getInventory()->setHeldItemSlot($inventoryArray[4]);
+            $clonedHuman->getInventory()->setItemInHand($inventoryArray[5]);
+        }
+
+        if ($sender !== null) {
+            $sender->sendMessage($this->prefix . $typeToUse . " entity spawned with name " . TextFormat::WHITE . "\"" . TextFormat::BLUE . $nbt->NameTag . TextFormat::WHITE . "\"");
+        }
+
+        return $clonedHuman;
+    }
+
+    public function onCommand(CommandSender $sender, Command $command, $label, array $args) {
+        switch (strtolower($command->getName())) {
             case 'nothing':
                 return true;
                 break;
+            case 'slapperrestore':
+                $this->checkForSlapperRestore($sender);
+                return true;
+                break;
             case 'rca':
-                if(count($args) < 2){
+                if (count($args) < 2) {
                     $sender->sendMessage($this->prefix . "Please enter a player and a command.");
                     return true;
                 }
                 $player = $this->getServer()->getPlayer(array_shift($args));
-                if($player instanceof Player){
+                if ($player !== null) {
                     $this->getServer()->dispatchCommand($player, trim(implode(" ", $args)));
                     return true;
                 } else {
@@ -195,7 +328,7 @@ class Main extends PluginBase implements Listener
                         case "id":
                             if ($sender->hasPermission("slapper.id") || $sender->hasPermission("slapper")) {
                                 $this->idSessions[$sender->getName()] = true;
-                                $sender->sendMessage($this->prefix . "Hit an entity to get it's ID!");
+                                $sender->sendMessage($this->prefix . "Hit an entity to get its ID!");
                                 return true;
                             } else {
                                 $sender->sendMessage($this->noperm);
@@ -284,7 +417,7 @@ class Main extends PluginBase implements Listener
                                 if (isset($args[0])) {
                                     $level = $sender->getLevel();
                                     $entity = $level->getEntity($args[0]);
-                                    if ($entity !== null) {
+                                    if (!($entity == null)) {
                                         if ($entity instanceof SlapperEntity || $entity instanceof SlapperHuman) {
                                             if (isset($args[1])) {
                                                 switch ($args[1]) {
@@ -635,64 +768,154 @@ class Main extends PluginBase implements Listener
                             $typeToUse = "Nothing";
                             switch ($theOne) {
                                 case "Human":
+                                    $typeToUse = "SlapperHuman";
+                                    break;
                                 case "Player":
+                                    $typeToUse = "SlapperHuman";
+                                    break;
                                 case "Pig":
+                                    $typeToUse = "SlapperPig";
+                                    break;
                                 case "Bat":
+                                    $typeToUse = "SlapperBat";
+                                    break;
                                 case "Cow":
+                                    $typeToUse = "SlapperCow";
+                                    break;
                                 case "Sheep":
+                                    $typeToUse = "SlapperSheep";
+                                    break;
                                 case "MushroomCow":
+                                    $typeToUse = "SlapperMushroomCow";
+                                    break;
                                 case "Mooshroom":
+                                    $typeToUse = "SlapperMushroomCow";
+                                    break;
                                 case "LavaSlime":
+                                    $typeToUse = "SlapperLavaSlime";
+                                    break;
                                 case "Enderman":
+                                    $typeToUse = "SlapperEnderman";
+                                    break;
                                 case "Zombie":
+                                    $typeToUse = "SlapperZombie";
+                                    break;
                                 case "Creeper":
+                                    $typeToUse = "SlapperCreeper";
+                                    break;
                                 case "Skeleton":
+                                    $typeToUse = "SlapperSkeleton";
+                                    break;
                                 case "Silverfish":
+                                    $typeToUse = "SlapperSilverfish";
+                                    break;
                                 case "Chicken":
+                                    $typeToUse = "SlapperChicken";
+                                    break;
                                 case "Villager":
+                                    $typeToUse = "SlapperVillager";
+                                    break;
                                 case "CaveSpider":
+                                    $typeToUse = "SlapperCaveSpider";
+                                    break;
                                 case "Spider":
+                                    $typeToUse = "SlapperSpider";
+                                    break;
                                 case "Squid":
+                                    $typeToUse = "SlapperSquid";
+                                    break;
                                 case "Wolf":
+                                    $typeToUse = "SlapperWolf";
+                                    break;
                                 case "Slime":
+                                    $typeToUse = "SlapperSlime";
+                                    break;
                                 case "PigZombie":
+                                    $typeToUse = "SlapperPigZombie";
+                                    break;
                                 case "MagmaCube":
+                                    $typeToUse = "SlapperLavaSlime";
+                                    break;
                                 case "ZombiePigman":
+                                    $typeToUse = "SlapperPigZombie";
+                                    break;
                                 case "PrimedTNT":
+                                    $typeToUse = "SlapperPrimedTNT";
+                                    break;
                                 case "Minecart":
+                                    $typeToUse = "SlapperMinecart";
+                                    break;
                                 case "Boat":
-                                case "Ghast":
-                                case "Blaze":
-                                case "IronGolem":
-                                case "VillagerGolem":
-                                case "Ocelot":
-                                case "Horse":
-                                case "Donkey":
-                                case "Mule":
-                                case "SkeletonHorse":
-                                case "ZombieHorse":
-                                case "Witch":
-                                case "Husk":
-                                case "Stray":
-                                case "WitherSkeleton":
-                                case "Rabbit":
-                                    $typeToUse = 'Slapper' . $theOne;
+                                    $typeToUse = "SlapperBoat";
                                     break;
                                 case "FallingSand":
+                                    $typeToUse = "SlapperFallingSand";
+                                    break;
                                 case "FallingBlock":
+                                    $typeToUse = "SlapperFallingSand";
+                                    break;
                                 case "FakeBlock":
                                     $typeToUse = "SlapperFallingSand";
                                     break;
                                 case "ZombieVillager":
+                                    $typeToUse = "SlapperZombieVillager";
+                                    break;
                                 case "VillagerZombie":
                                     $typeToUse = "SlapperZombieVillager";
                                     break;
+                                case "Ghast":
+                                    $typeToUse = "SlapperGhast";
+                                    break;
+                                case "Blaze":
+                                    $typeToUse = "SlapperBlaze";
+                                    break;
+                                case "IronGolem":
+                                    $typeToUse = "SlapperIronGolem";
+                                    break;
+                                case "VillagerGolem":
+                                    $typeToUse = "SlapperIronGolem";
+                                    break;
                                 case "SnowGolem":
+                                    $typeToUse = "SlapperSnowman";
+                                    break;
                                 case "Snowman":
                                     $typeToUse = "SlapperSnowman";
                                     break;
+                                case "Ocelot":
+                                    $typeToUse = "SlapperOcelot";
+                                    break;
+                                case "Horse":
+                                    $typeToUse = "SlapperHorse";
+                                    break;
+                                case "Donkey":
+                                    $typeToUse = "SlapperDonkey";
+                                    break;
+                                case "Mule":
+                                    $typeToUse = "SlapperMule";
+                                    break;
+                                case "SkeletonHorse":
+                                    $typeToUse = "SlapperSkeletonHorse";
+                                    break;
+                                case "ZombieHorse":
+                                    $typeToUse = "SlapperZombieHorse";
+                                    break;
+                                case "Witch":
+                                    $typeToUse = "SlapperWitch";
+                                    break;
+                                case "Husk":
+                                    $typeToUse = "SlapperHusk";
+                                    break;
+                                case "Stray":
+                                    $typeToUse = "SlapperStray";
+                                    break;
+                                case "WitherSkeleton":
+                                    $typeToUse = "SlapperWitherSkeleton";
+                                    break;
+                                case "Rabbit":
+                                    $typeToUse = "SlapperRabbit";
+                                    break;
                             }
-                            if ($typeToUse !== "Nothing" && $theOne !== "Blank") {
+                            if (!($typeToUse === "Nothing") && !($theOne === "Blank")) {
                                 $nbt = $this->makeNBT($typeToUse, $sender->getSkinData(), $sender->getSkinId(), $name, $inventory, $sender->getYaw(), $sender->getPitch(), $playerX, $playerY, $playerZ);
                                 $slapperEntity = Entity::createEntity($typeToUse, $sender->getLevel()->getChunk($playerX >> 4, $playerZ >> 4), $nbt);
                                 $sender->sendMessage($this->prefix . $theOne . " entity spawned with name " . TextFormat::WHITE . "\"" . TextFormat::BLUE . $name . TextFormat::WHITE . "\"" . TextFormat::GREEN . " and entity ID " . TextFormat::BLUE . $slapperEntity->getId());
@@ -707,14 +930,16 @@ class Main extends PluginBase implements Listener
                                 $inv->setHeldItemSlot($inventory->getHeldItemSlot());
                                 $inv->setItemInHand($inventory->getItemInHand());
                             }
-                            if ($theOne !== "Blank" && isset($slapperEntity)) {
+                            if (!($theOne == "Blank") && isset($slapperEntity)) {
                                 $slapperEntity->spawnToAll();
                             }
                             if ($typeToUse === "Nothing" || $theOne === "Blank") {
                                 if ($spawn) {
                                     $sender->sendMessage($this->prefix . "Invalid entity.");
                                 }
+                                return true;
                             }
+                            $this->cacheSlapper($sender, $typeToUse, $nbt, $slapperEntity, $name);
                             return true;
                         default:
                             $sender->sendMessage($this->prefix . "Unknown command. Type '/slapper help' for help.");
@@ -796,7 +1021,7 @@ class Main extends PluginBase implements Listener
                                 $server->dispatchCommand(new ConsoleCommandSender(), str_ireplace("{player}", $giverName, $cmd));
                             }
                         } else {
-                            $this->getLogger()->warning("Outdated entity; adding blank commands compound. Please restore commands manually with '/slapper edit " . $taker->getId() . " fix'");
+                            $this->getLogger()->debug("Outdated entity; adding blank commands compound. Please restore commands manually with '/slapper edit " . $taker->getId() . " fix'");
                             $taker->namedtag->Commands = new CompoundTag("Commands", []);
                         }
                     }

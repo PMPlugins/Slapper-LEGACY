@@ -696,7 +696,7 @@ class Main extends PluginBase implements Listener
                                     $typeToUse = "SlapperSnowman";
                                     break;
                                 case "MagmaCube":
-                                Case "LavaSlime":
+                                case "LavaSlime":
                                     $typeToUse = "SlapperLavaSlime";
                                     break;
                             }

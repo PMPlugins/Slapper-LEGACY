@@ -195,7 +195,7 @@ class Main extends PluginBase implements Listener
                         case "id":
                             if ($sender->hasPermission("slapper.id") || $sender->hasPermission("slapper")) {
                                 $this->idSessions[$sender->getName()] = true;
-                                $sender->sendMessage($this->prefix . "Hit an entity to get it's ID!");
+                                $sender->sendMessage($this->prefix . "Hit an entity to get its ID!");
                                 return true;
                             } else {
                                 $sender->sendMessage($this->noperm);
@@ -626,7 +626,12 @@ class Main extends PluginBase implements Listener
                                     "Rabbit",
                                     "Stray",
                                     "Husk",
-                                    "WitherSkeleton"
+                                    "WitherSkeleton",
+                                    "IronGolem",
+                                    "VillagerGolem",
+                                    "SnowGolem",
+                                    "Snowman",
+                                    "MagmaCube"
                                 ] as $entityType) {
                                 if (strtolower($type) === strtolower($entityType)) {
                                     $theOne = $entityType;
@@ -656,7 +661,6 @@ class Main extends PluginBase implements Listener
                                 case "Wolf":
                                 case "Slime":
                                 case "PigZombie":
-                                case "MagmaCube":
                                 case "ZombiePigman":
                                 case "PrimedTNT":
                                 case "Minecart":
@@ -690,6 +694,10 @@ class Main extends PluginBase implements Listener
                                 case "SnowGolem":
                                 case "Snowman":
                                     $typeToUse = "SlapperSnowman";
+                                    break;
+                                case "MagmaCube":
+                                Case "LavaSlime":
+                                    $typeToUse = "SlapperLavaSlime";
                                     break;
                             }
                             if ($typeToUse !== "Nothing" && $theOne !== "Blank") {

@@ -379,7 +379,7 @@ class Main extends PluginBase implements Listener
                                                         if (isset($args[2])) {
                                                             array_shift($args);
                                                             array_shift($args);
-                                                            $entity->setDataProperty(2, Entity::DATA_TYPE_STRING, trim(implode(" ", $args)));
+                                                            $entity->setDataProperty(self::DATA_NAMETAG, Entity::DATA_TYPE_STRING, trim(implode(" ", $args)));
                                                             $entity->respawnToAll();
                                                             $sender->sendMessage($this->prefix . "Name updated.");
                                                         } else {
@@ -426,7 +426,7 @@ class Main extends PluginBase implements Listener
                                                     case "custom_name_visible":
                                                     case "tag_visible":
                                                         if (isset($args[2])) {
-                                                            $entity->setDataProperty(3, 0, intval($args[2]));
+                                                            $entity->setNameTagVisible((bool) $args[2]);
                                                             $entity->respawnToAll();
                                                             $sender->sendMessage($this->prefix . "Name visibility updated.");
                                                         } else {

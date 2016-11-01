@@ -22,15 +22,13 @@ class SlapperBat extends SlapperEntity
         $pk->yaw = $this->yaw;
         $pk->pitch = $this->pitch;
         $pk->metadata = [
-            15 => [0, 1],
-            16 => [0, 0],
-            23 => [7, -1],
-            24 => [0, 0]
+            self::DATA_FLAGS => [self::DATA_TYPE_LONG, ((1 << self::DATA_FLAG_NO_AI) | (1 << self::DATA_FLAG_RESTING))]
+            self::DATA_LEAD_HOLDER_EID => [self::DATA_TYPE_LONG, -1],
         ];
         $player->dataPacket($pk);
-        if($this->getDataProperty(3) === 1){
+        if($this->isNameTagVisible()){
             $this->addNametag($this->getDisplayName($player), $player);
-        }        
+        }
     }
 
 

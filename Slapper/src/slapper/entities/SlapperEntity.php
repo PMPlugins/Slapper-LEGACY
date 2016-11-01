@@ -72,13 +72,12 @@ class SlapperEntity extends Entity {
         $pk->yaw = $this->yaw;
         $pk->pitch = $this->pitch;
         $pk->metadata = [
-            15 => [0, 1],
-            23 => [7, -1],
-            24 => [0, 0]
+            self::DATA_FLAGS => [self::DATA_TYPE_LONG, (1 << self::DATA_FLAG_NO_AI)],
+            self::DATA_LEAD_HOLDER_EID => [self::DATA_TYPE_LONG, -1],
         ];
         $player->dataPacket($pk);
         parent::spawnTo($player);
-        if($this->getDataProperty(3) === 1){
+        if($this->isNameTagVisible()){
             $this->addNametag($this->getDisplayName($player), $player);
         }        
     }
@@ -110,17 +109,15 @@ class SlapperEntity extends Entity {
         $pk->pitch = 0;
         $pk->item = Item::get(0);
         $pk->metadata = [
-            0 => [0, 32],
-            2 => [4, $name],
-            15 => [0, 1],
-            23 => [7, -1],
-            24 => [0, 0]
+            self::DATA_FLAGS => [self::DATA_TYPE_LONG, ((1 << self::DATA_FLAG_INVISIBLE) | (1 << self::DATA_FLAG_NO_AI))],
+            self::DATA_NAMETAG => [self::DATA_TYPE_STRING, $name],
+            self::DATA_LEAD_HOLDER_EID => [self::DATA_TYPE_LONG, -1]
         ];
         $player->dataPacket($pk); 
     }
     
     public function getDisplayName($player){
-        return str_ireplace(["{name}", "{display_name}", "{nametag}"], [$player->getName(), $player->getDisplayName(), $player->getNametag()], $player->hasPermission("slapper.seeId") ? $this->getDataProperty(2) . "\n" . \pocketmine\utils\TextFormat::GREEN . "Entity ID: " . $this->getId() : $this->getDataProperty(2));
+        return str_ireplace(["{name}", "{display_name}", "{nametag}"], [$player->getName(), $player->getDisplayName(), $player->getNametag()], $player->hasPermission("slapper.seeId") ? $this->getNameTag() . "\n" . \pocketmine\utils\TextFormat::GREEN . "Entity ID: " . $this->getId() : $this->getNameTag());
     }
 
 }

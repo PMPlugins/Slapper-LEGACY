@@ -22,17 +22,16 @@ class SlapperFallingSand extends SlapperEntity
         $pk->yaw = $this->yaw;
         $pk->pitch = $this->pitch;
         $pk->metadata = [
-            15 => [0, 1],
-            23 => [7, -1],
-            24 => [0, 0]
+            self::DATA_FLAGS => [self::DATA_TYPE_LONG, (1 << self::DATA_FLAG_NO_AI)],
+            self::DATA_LEAD_HOLDER_EID => [self::DATA_TYPE_LONG, -1]
         ];
         if (isset($this->namedtag->BlockID)) {
-            $pk->metadata[20] = [2, $this->namedtag->BlockID->getValue()];
+            $pk->metadata[self::DATA_VARIANT] = [self::DATA_TYPE_INT, $this->namedtag->BlockID->getValue()];
         } else {
-            $pk->metadata[20] = [2, 1];
+            $pk->metadata[self::DATA_VARIANT] = [self::DATA_TYPE_INT, 1];
         }
         $player->dataPacket($pk);
-        if($this->getDataProperty(3) === 1){
+        if($this->isNameTagVisible()){
             $this->addNametag($this->getDisplayName($player), $player);
         }        
     }

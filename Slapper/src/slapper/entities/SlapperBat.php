@@ -22,7 +22,7 @@ class SlapperBat extends SlapperEntity
         $pk->yaw = $this->yaw;
         $pk->pitch = $this->pitch;
         $pk->metadata = [
-            self::DATA_FLAGS => [self::DATA_TYPE_LONG, ((1 << self::DATA_FLAG_NO_AI) | (1 << self::DATA_FLAG_RESTING))]
+            self::DATA_FLAGS => [self::DATA_TYPE_LONG, ((1 << self::DATA_FLAG_NO_AI) | (1 << self::DATA_FLAG_RESTING))],
             self::DATA_LEAD_HOLDER_EID => [self::DATA_TYPE_LONG, -1],
         ];
         $player->dataPacket($pk);
